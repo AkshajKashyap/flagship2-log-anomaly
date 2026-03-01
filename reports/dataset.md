@@ -26,9 +26,6 @@ Expected fields per line:
 - content/message (rest of line)
 
 ## Example raw lines
-
-Paste 2 to 5 example lines from `head -n 3 data/raw/hdfs/HDFS.log` here:
-
 ```text
 081109 203518 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.19.102:54106 dest: /10.250.19.102:50010
 081109 203518 35 INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: /mnt/hadoop/mapred/system/job_200811092030_0001/job.jar. blk_-1608999687919862906
