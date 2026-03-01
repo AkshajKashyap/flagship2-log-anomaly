@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, Iterable, Optional, Tuple
 
 import pandas as pd
+from tqdm import tqdm
 
 from log_anomaly.parsing import parse_hdfs_line, LogEvent
 from log_anomaly.templating import to_template
@@ -42,9 +43,8 @@ def iter_events(path: Path, max_lines: Optional[int]) -> Iterable[LogEvent]:
 
 def build_template_vocab(path: Path, top_k: int, max_lines: Optional[int]) -> Dict[str, int]:
     counts: Counter[str] = Counter()
-    for evt in iter_events(path, max_lines=max_lines):
-        tmpl = to_template(evt.content)
-        counts[tmpl] += 1
+    for evt in tqdm(iter_events(path, max_lines=max_lines), desc="Pass1 vocab"):
+        counts[to_template(evt.content)] += 1
     most_common = counts.most_common(top_k)
     return {tmpl: idx for idx, (tmpl, _) in enumerate(most_common)}
 
@@ -114,7 +114,7 @@ def build_features(
 
     current_window: Optional[datetime] = None
 
-    for evt in iter_events(path, max_lines=max_lines):
+    for evt in tqdm(iter_events(path, max_lines=max_lines), desc="Pass2 windows"):
         ws = floor_to_window(evt.ts, window_seconds)
         group_key = evt.component or "global"
 
@@ -163,13 +163,8 @@ def build_features(
     df.sort_values(["window_start", "group"], inplace=True)
     out_features.parent.mkdir(parents=True, exist_ok=True)
 
-    try:
-        df.to_parquet(out_features, index=False)
-        print(f"Wrote features: {out_features} rows={len(df)} cols={len(df.columns)}")
-    except Exception as e:
-        csv_path = out_features.with_suffix(".csv")
-        df.to_csv(csv_path, index=False)
-        print(f"Parquet failed ({e}). Wrote CSV instead: {csv_path}")
+    df.to_parquet(out_features, index=False)
+    print(f"Wrote features: {out_features} rows={len(df)} cols={len(df.columns)}")
 
 
 def main() -> None:
