@@ -6,3 +6,7 @@ data/
 .venv/
 .DS_Store
 data/raw/
+
+# Local-only
+.env
+.vscode/
